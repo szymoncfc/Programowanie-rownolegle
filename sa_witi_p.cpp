@@ -93,8 +93,8 @@ void sa_witi(const vector<Zadanie>& zadania, double init_temperature, double coo
 
         current_temperature *= cooling_rate;
 
-        if (iter % (max_iter / 10) == 0) { // Synchronizacja co pewien czas
-            //unique_lock<mutex> lock(globalMutex);
+        // Synchronizacja co pewien czas
+        if (iter % (max_iter / 10) == 0) { 
             global_mutex.lock();
             if (best_delay < global_best_delay) {
                 global_best_delay = best_delay;
@@ -140,12 +140,12 @@ int main() {
         zadania.emplace_back(var1, var2, var3, j + 1);
     }
 
-    double temperature = 1000;
+    double temperature = 10000;
     double cooling_rate = 0.98;
-    int max_iterations = 500;
-    int num_threads = 2; // liczba wątków
+    int max_iterations = 1000;
+    int num_threads = 4; 
 
-    srand(time(nullptr));
+    //srand(time(nullptr));
 
     auto started = chrono::high_resolution_clock::now();
     vector<Zadanie> optimalPermutation = sa_witi_parallel(zadania, temperature, cooling_rate, max_iterations, num_threads);
