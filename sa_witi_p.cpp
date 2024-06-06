@@ -59,7 +59,7 @@ vector<Zadanie> swap_elements(vector<Zadanie>& vec, mt19937& rng) {
 
 void sa_witi(const vector<Zadanie>& zadania, double init_temperature, double cooling_rate, int max_iter, 
                               int& global_best_delay, vector<Zadanie>& global_best_perm, 
-                              mutex& global_mutex, condition_variable& cv, int thread_id) 
+                              mutex& global_mutex, condition_variable& cv, int thread_id, bool& ready) 
     {
 
     vector<Zadanie> best_permutation = zadania;
@@ -103,6 +103,7 @@ void sa_witi(const vector<Zadanie>& zadania, double init_temperature, double coo
                 best_permutation = global_best_perm;
                 best_delay = global_best_delay;
             }
+            ready = true;
             cv.notify_all();
             global_mutex.unlock();
         }
@@ -115,11 +116,12 @@ vector<Zadanie> sa_witi_parallel(const vector<Zadanie>& zadania, double init_tem
     vector<Zadanie> global_best_perm;
     mutex global_mutex;
     condition_variable cv;
+    bool ready = false;
 
     vector<thread> threads;
     for (int i = 0; i < num_threads; ++i) {
         threads.push_back(thread(sa_witi, ref(zadania), init_temperature, cooling_rate, max_iterations, 
-                                 ref(global_best_delay), ref(global_best_perm), ref(global_mutex), ref(cv), i));
+                                 ref(global_best_delay), ref(global_best_perm), ref(global_mutex), ref(cv), i, ref(ready)));
     }
 
     for (auto& t : threads) {
