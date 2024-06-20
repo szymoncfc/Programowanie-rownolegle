@@ -14,17 +14,17 @@
 
 using namespace std;
 
-class Zadanie {
+class Job {
 public:
     int p;  // czas wykonania
     int w;  // waga zadania
     int d;  // deadline pożądany termin zakończenia
     int nr; // nr zadania, do wyświetlenia permutacji
 
-    Zadanie(int pp, int ww, int dd, int n) : p(pp), w(ww), d(dd), nr(n) {}
+    Job(int pp, int ww, int dd, int n) : p(pp), w(ww), d(dd), nr(n) {}
 };
 
-int witi(const vector<Zadanie> &v) {
+int witi(const vector<Job> &v) {
     int ti = 0; // spoznienie
     int c = 0;
     int witi = 0;
@@ -38,11 +38,7 @@ int witi(const vector<Zadanie> &v) {
     return witi;
 }
 
-vector<Zadanie> swap_elements(vector<Zadanie>& vec, mt19937& rng) {
-    if (vec.size() < 2) {
-        cerr << "Wektor musi zawierać przynajmniej dwa elementy, aby dokonać zamiany." << endl;
-        return vec;
-    }
+vector<Job> swap_elements(vector<Job>& vec, mt19937& rng) {
 
     uniform_int_distribution<int> dist(0, vec.size() - 1);
     int index1 = dist(rng);
@@ -57,24 +53,24 @@ vector<Zadanie> swap_elements(vector<Zadanie>& vec, mt19937& rng) {
     return vec;
 }
 
-void sa_witi(const vector<Zadanie>& zadania, double init_temperature, double cooling_rate, int max_iter, 
-                              int& global_best_delay, vector<Zadanie>& global_best_perm, 
+void sa_witi(const vector<Job>& zadania, double init_temperature, double cooling_rate, int max_iter, 
+                              int& global_best_delay, vector<Job>& global_best_perm, 
                               mutex& global_mutex, condition_variable& cv, int thread_id, bool& ready) 
     {
 
-    vector<Zadanie> best_permutation = zadania;
+    vector<Job> best_permutation = zadania;
     int best_delay = witi(best_permutation);
 
-    vector<Zadanie> current_permutation = best_permutation;
+    vector<Job> current_permutation = best_permutation;
     int current_delay = best_delay;
     double current_temperature = init_temperature;
 
     random_device rd;
-    mt19937 rng(rd() + thread_id); // Różne seedy dla różnych wątków
+    mt19937 rng(rd() + thread_id); 
     uniform_real_distribution<double> dist(0.0, 1.0);
 
     for (int iter = 0; iter < max_iter; ++iter) {
-        vector<Zadanie> new_permutation = current_permutation;
+        vector<Job> new_permutation = current_permutation;
         new_permutation = swap_elements(new_permutation, rng);
 
         int new_delay = witi(new_permutation);
@@ -99,6 +95,7 @@ void sa_witi(const vector<Zadanie>& zadania, double init_temperature, double coo
             if (best_delay < global_best_delay) {
                 global_best_delay = best_delay;
                 global_best_perm = best_permutation;
+                std::cout << "Znaleziono lepsza permutacje: " << global_best_delay<<std::endl;
             } else {
                 best_permutation = global_best_perm;
                 best_delay = global_best_delay;
@@ -110,10 +107,10 @@ void sa_witi(const vector<Zadanie>& zadania, double init_temperature, double coo
     }
 }
 
-vector<Zadanie> sa_witi_parallel(const vector<Zadanie>& zadania, double init_temperature, double cooling_rate, int max_iterations, int num_threads) {
+vector<Job> sa_witi_parallel(const vector<Job>& zadania, double init_temperature, double cooling_rate, int max_iterations, int num_threads) {
     // zmienne globalne
     int global_best_delay = numeric_limits<int>::max();
-    vector<Zadanie> global_best_perm;
+    vector<Job> global_best_perm;
     mutex global_mutex;
     condition_variable cv;
     bool ready = false;
@@ -132,7 +129,7 @@ vector<Zadanie> sa_witi_parallel(const vector<Zadanie>& zadania, double init_tem
 }
 
 int main() {
-    vector<Zadanie> zadania;
+    vector<Job> zadania;
     int N, var1, var2, var3;
     ifstream plik("data2.txt");
 
@@ -142,15 +139,15 @@ int main() {
         zadania.emplace_back(var1, var2, var3, j + 1);
     }
 
-    double temperature = 10000;
+    double temperature = 1000;
     double cooling_rate = 0.98;
-    int max_iterations = 1000;
+    int max_iterations = 500;
     int num_threads = 4; 
 
     //srand(time(nullptr));
 
     auto started = chrono::high_resolution_clock::now();
-    vector<Zadanie> optimalPermutation = sa_witi_parallel(zadania, temperature, cooling_rate, max_iterations, num_threads);
+    vector<Job> optimalPermutation = sa_witi_parallel(zadania, temperature, cooling_rate, max_iterations, num_threads);
     auto done = chrono::high_resolution_clock::now();
     double tot_time = chrono::duration_cast<chrono::milliseconds>(done - started).count();
 
