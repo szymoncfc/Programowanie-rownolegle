@@ -198,7 +198,7 @@ vector<Job> island_model(vector<Job>& jobs_seq, int num_islands, int population_
         {
             if (island_best_cmax < bestCmax) {
                 bestCmax = island_best_cmax;
-                //std::cout<<"Znaleziono lepsze rozwiazanie: "<< bestCmax << " wyspa: " << i<<std::endl;
+                //std::cout<<"Lepsze rozwiazanie: "<< bestCmax << " wyspa: " << i<<std::endl;
                 best_cmax = islands[i][0];
             }
         }
@@ -231,7 +231,7 @@ int main() {
     omp_set_num_threads(num_islands);
 
     auto started = std::chrono::high_resolution_clock::now();
-    vector<Job> best_solution = island_model(vec, num_islands, 60, 60, 0.01, 10);
+    vector<Job> best_solution = island_model(vec, num_islands, 80, 80, 0.01, 10);
     auto done = std::chrono::high_resolution_clock::now();
     t = std::chrono::duration_cast<std::chrono::milliseconds>(done - started).count();
 
